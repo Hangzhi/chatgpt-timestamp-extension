@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChatGPT Timestamp Options</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; color: #222; }
+    fieldset { border: 1px solid #ccc; padding: 1rem 1.25rem; border-radius: 6px; }
+    legend { font-weight: 600; }
+    label { display: flex; align-items: center; gap: .5rem; margin: .4rem 0; }
+    .status { margin-top: .75rem; font-size: .85rem; color: #0a7; opacity: 0; transition: opacity .4s; }
+    .status.visible { opacity: 1; }
+    footer { margin-top: 2rem; font-size: .75rem; color: #555; }
+    code { background: #f5f5f5; padding: 2px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>ChatGPT Timestamp Settings</h1>
+  <form id="prefsForm">
+    <fieldset>
+      <legend>Time Format</legend>
+      <label><input type="radio" name="timeFormat" value="auto" checked> Auto (Follow Browser Locale)</label>
+      <label><input type="radio" name="timeFormat" value="24h"> 24-Hour</label>
+      <label><input type="radio" name="timeFormat" value="12h"> 12-Hour (AM/PM)</label>
+    </fieldset>
+    <div class="status" id="status">Saved</div>
+  </form>
+  <footer>
+    <p>All settings are stored locally in <code>chrome.storage.local</code>. No chat data ever leaves your browser. The extension does not transmit or collect message content, telemetry, or analytics.</p>
+  </footer>
+  <script src="options.js"></script>
+</body>
+</html>
