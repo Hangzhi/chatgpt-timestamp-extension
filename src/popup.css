@@ -1,0 +1,92 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  width: 280px;
+  background: white;
+}
+
+.popup-container {
+  padding: 20px;
+}
+
+h1 {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #000;
+  text-align: center;
+}
+
+#toggleTimestamp {
+  display: none;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.toggle-label span {
+  font-size: 13px;
+  color: #000;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.format-12 {
+  opacity: 0.5;
+}
+
+.format-24 {
+  opacity: 1;
+}
+
+#toggleTimestamp:not(:checked) ~ .toggle-label .format-12 {
+  opacity: 1;
+}
+
+#toggleTimestamp:not(:checked) ~ .toggle-label .format-24 {
+  opacity: 0.5;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  border-radius: 24px;
+  transition: 0.2s;
+}
+
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 23px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+#toggleTimestamp:not(:checked) ~ .toggle-label .slider {
+  background: #ccc;
+}
+
+#toggleTimestamp:not(:checked) ~ .toggle-label .slider:before {
+  left: 3px;
+}
