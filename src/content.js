@@ -28,11 +28,13 @@ function addTimestamps() {
     }
 
     const span = document.createElement('span');
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const color = isDark ? '#ccc' : '#555';
     span.textContent = formatted;
     span.className = 'chatgpt-timestamp';
     span.style.cssText = `
       font-size: 11px;
-      color: #555;
+      color: ${color};
       font-weight: 600;
       margin-right: 8px;
       margin-bottom: 4px;
