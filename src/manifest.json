@@ -24,6 +24,5 @@
       "world": "MAIN"
     }
   ],
-  "permissions": ["activeTab", "scripting"],
-  "host_permissions": ["https://chat.openai.com/*", "https://chatgpt.com/*"]
+  "permissions": ["activeTab", "scripting"]
 }
