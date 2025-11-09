@@ -20,12 +20,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   toggle.addEventListener('change', async (e) => {
     const use24Hour = e.target.checked;
 
-    // Update all ChatGPT tabs
-    const tabs = await chrome.tabs.query({
-      url: ['https://chat.openai.com/*', 'https://chatgpt.com/*']
-    });
+    // Update only the current active tab (activeTab permission)
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    for (const tab of tabs) {
+    if (tab.url?.includes('chat.openai.com') || tab.url?.includes('chatgpt.com')) {
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: (is24Hour) => {
