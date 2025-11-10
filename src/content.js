@@ -1,114 +1,75 @@
-// ChatGPT Timestamp Content Script
-// Privacy & Security Considerations:
-// - No network requests are made; all processing is local.
-// - Only reads DOM elements already present; does not exfiltrate data.
-// - Stores only minimal user preference (time format) via chrome.storage.local.
-// - Does not log message contents.
+let use24HourFormat = localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false';
 
-(function() {
-  const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const PREF_KEY = 'chatgpt_timestamp_preferences_v1';
-  let userPrefs = { timeFormat: 'auto' }; // auto -> use locale
-  let localeUses12h = null;
+function addTimestamps() {
+  document.querySelectorAll('div[data-message-id]').forEach(div => {
+    // Skip if already has timestamp
+    if (div.dataset.timestampAdded) return;
 
-  function detectLocaleHourCycle() {
-    try {
-      // Use resolvedOptions hourCycle if available
-      const dtf = new Intl.DateTimeFormat(undefined, { hour: 'numeric' });
-      const opt = dtf.resolvedOptions();
-      if (opt.hour12 !== undefined) {
-        return opt.hour12; // true -> 12h
-      }
-      // Fallback heuristic: format a date and see if it contains AM/PM
-      const sample = new Date(2000, 0, 1, 13, 0, 0);
-      const s = dtf.format(sample).toLowerCase();
-      return s.includes('pm');
-    } catch (e) {
-      return false; // default to 24h if uncertain
-    }
-  }
+    const reactKey = Object.keys(div).find(k => k.startsWith('__reactFiber$'));
+    if (!reactKey) return;
 
-  function loadPrefs() {
-    if (!chrome?.storage?.local) return Promise.resolve();
-    return new Promise(resolve => {
-      chrome.storage.local.get(PREF_KEY, data => {
-        if (data && data[PREF_KEY]) {
-          userPrefs = { ...userPrefs, ...data[PREF_KEY] };
-        }
-        resolve();
-      });
-    });
-  }
-
-  function savePrefs() {
-    if (!chrome?.storage?.local) return;
-    chrome.storage.local.set({ [PREF_KEY]: userPrefs });
-  }
-
-  function formatTimestamp(epochSeconds) {
-    const date = new Date(epochSeconds * 1000);
-
-    const use12hDefault = (localeUses12h === null ? (localeUses12h = detectLocaleHourCycle()) : localeUses12h);
-    let use12h;
-    switch (userPrefs.timeFormat) {
-      case '12h': use12h = true; break;
-      case '24h': use12h = false; break;
-      default: use12h = use12hDefault; break; // auto
-    }
-
-    if (use12h) {
-      // 12h formatting with locale for month/day/year ordering but consistent style for time
-      const datePart = `${MONTHS_SHORT[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
-      let hours = date.getHours();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      if (hours === 0) hours = 12;
-      const pad = n => n.toString().padStart(2, '0');
-      return `${datePart} - ${hours}:${pad(date.getMinutes())}:${pad(date.getSeconds())} ${ampm}`;
-    } else {
-      const pad = n => n.toString().padStart(2, '0');
-      return `${MONTHS_SHORT[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} - ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-    }
-  }
-
-  function processMessageDiv(div) {
-    if (!div || div.dataset.timestampAdded) return;
-    // Defensive: only operate on expected attribute
-    if (!div.hasAttribute('data-message-id')) return;
-
-    let timestamp;
-    try {
-      const reactKey = Object.keys(div).find(k => k.startsWith('__reactFiber$'));
-      if (!reactKey) return;
-      const fiber = div[reactKey];
-      const messages = fiber?.return?.memoizedProps?.messages;
-      timestamp = messages?.[0]?.create_time;
-    } catch {
-      return; // silently ignore
-    }
-
+    const fiber = div[reactKey];
+    const messages = fiber?.return?.memoizedProps?.messages;
+    const timestamp = messages?.[0]?.create_time;
     if (!timestamp) return;
 
+    const date = new Date(timestamp * 1000);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const format = n => n.toString().padStart(2, '0');
+
+    let formatted;
+    if (use24HourFormat) {
+      formatted = `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} - ${format(date.getHours())}:${format(date.getMinutes())}:${format(date.getSeconds())}`;
+    } else {
+      let hours = date.getHours();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      formatted = `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} - ${hours}:${format(date.getMinutes())}:${format(date.getSeconds())} ${ampm}`;
+    }
+
     const span = document.createElement('span');
-    span.textContent = formatTimestamp(timestamp);
-    span.className = 'chatgpt-timestamp-label';
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const color = isDark ? '#ccc' : '#555';
+    span.textContent = formatted;
+    span.className = 'chatgpt-timestamp';
     span.style.cssText = `
-      font-size: 11px; 
-      color: #555; 
+      font-size: 11px;
+      color: ${color};
       font-weight: 600;
-      margin-right: 8px; 
+      margin-right: 8px;
       margin-bottom: 4px;
       display: inline-block;
       font-family: ui-monospace, 'SF Mono', Monaco, monospace;
       user-select: text;
     `;
     div.insertBefore(span, div.firstChild);
+
+    // Mark as processed
     div.dataset.timestampAdded = 'true';
   }
 
-  function addTimestamps() {
-    document.querySelectorAll('div[data-message-id]').forEach(processMessageDiv);
+function updateTimestamps() {
+  // Remove all existing timestamps
+  document.querySelectorAll('.chatgpt-timestamp').forEach(span => span.remove());
+  document.querySelectorAll('div[data-message-id]').forEach(div => {
+    delete div.dataset.timestampAdded;
+  });
+  // Re-add with new format
+  addTimestamps();
+}
+
+// Listen for storage changes
+window.addEventListener('storage', (e) => {
+  if (e.key === 'chatgpt-timestamps-24h-format') {
+    use24HourFormat = e.newValue !== 'false';
+    updateTimestamps();
   }
+});
+
+// Wait for page to fully load
+setTimeout(() => {
+  addTimestamps();
+}, 3000);
 
   function initObservers() {
     const observer = new MutationObserver(() => {
