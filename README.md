@@ -1,9 +1,11 @@
 # ChatGPT Timestamp Extension
 
-A simple Chrome extension that displays timestamps for ChatGPT messages. The timestamps are already in the DOM - this just makes them visible.
+A simple Chrome & Firefox extension that displays timestamps for ChatGPT messages. The timestamps are already in the DOM - this just makes them visible.
 
-**[Install from Chrome Web Store](https://chromewebstore.google.com/detail/kdjfhglijhebcchcfkknicfaedhhfpmo?utm_source=item-share-cb)**
+## Installation
 
+**Chrome Add-on: [Install from Chrome Web Store](https://chromewebstore.google.com/detail/kdjfhglijhebcchcfkknicfaedhhfpmo?utm_source=item-share-cb)**  
+**Firefox Add-on: [Install from Mozilla Add-on](https://addons.mozilla.org/firefox/addon/chatgpt-timestamp)**
 
 ## Screenshot
 
@@ -22,16 +24,9 @@ Also helpful for:
 - Tracking how long tasks take
 - Finding different versions when iterating on code
 
-## Installation
-
-**Chrome Web Store:** [Install from Chrome Web Store](https://chromewebstore.google.com/detail/kdjfhglijhebcchcfkknicfaedhhfpmo?utm_source=item-share-cb)
-**Mozilla Add-on:** [Install from Mozilla Add-on](https://addons.mozilla.org/en-US/firefox/addon/chatgpt-timestamp)
-
-
-**Manual install:**
+## Manual install for Chrome ##
 1. Download this repo
 2. Open `chrome://extensions/`
 3. Enable Developer mode
 4. Load unpacked → select the `src/` folder
 5. Visit ChatGPT
-
