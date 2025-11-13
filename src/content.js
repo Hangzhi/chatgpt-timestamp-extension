@@ -40,13 +40,13 @@ function addTimestamps() {
       margin-bottom: 4px;
       display: inline-block;
       font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      user-select: text;
     `;
     div.insertBefore(span, div.firstChild);
 
     // Mark as processed
     div.dataset.timestampAdded = 'true';
-  });
-}
+  }
 
 function updateTimestamps() {
   // Remove all existing timestamps
@@ -71,14 +71,22 @@ setTimeout(() => {
   addTimestamps();
 }, 3000);
 
-const observer = new MutationObserver(() => {
-  setTimeout(addTimestamps, 500);
-});
+  function initObservers() {
+    const observer = new MutationObserver(() => {
+      // Debounce micro-bursts
+      window.requestIdleCallback ? requestIdleCallback(addTimestamps) : setTimeout(addTimestamps, 300);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-observer.observe(document.body, {
-  childList: true,
-  subtree: true
-});
+    // Periodic catch-up (reduced frequency for efficiency)
+    setInterval(addTimestamps, 10000);
+  }
 
-// Also run periodically to catch any missed messages
-setInterval(addTimestamps, 5000);
+  // Initialize
+  loadPrefs().then(() => {
+    setTimeout(() => {
+      addTimestamps();
+      initObservers();
+    }, 1500);
+  });
+})();

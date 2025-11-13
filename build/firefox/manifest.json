@@ -1,16 +1,21 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "ChatGPT Timestamp",
   "version": "0.2.1",
   "description": "Displays timestamps for ChatGPT messages with privacy-friendly local formatting (no data leaves the browser).",
+  "icons": {
+    "48": "icon.png"
+  },
   "permissions": ["storage"],
-  "options_page": "options.html",
+  "options_ui": {
+    "page": "options.html",
+    "browser_style": true
+  },
   "content_scripts": [
     {
       "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
-  ],
-  "permissions": ["activeTab", "scripting"]
+  ]
 }
