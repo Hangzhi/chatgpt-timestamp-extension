@@ -14,6 +14,9 @@ A simple Chrome & Firefox extension that displays timestamps for ChatGPT message
 ## What it does
 
 Shows when each message was sent in a clean format: "May 12 2025 - 14:30:45"
+Options:
+- Toggle between 12-hour and 24-hour time
+- Timestamp only user posts to reduce visual clutter
 
 ## Why I built this
 

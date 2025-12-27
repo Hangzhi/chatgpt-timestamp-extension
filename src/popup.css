@@ -90,3 +90,29 @@ h1 {
 #toggleTimestamp:not(:checked) ~ .toggle-label .slider:before {
   left: 3px;
 }
+
+.option-row {
+  margin-top: 16px;
+}
+
+#toggleUserOnly {
+  display: none;
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #000;
+  cursor: pointer;
+}
+
+#toggleUserOnly:not(:checked) + .option-label .slider {
+  background: #ccc;
+}
+
+#toggleUserOnly:not(:checked) + .option-label .slider:before {
+  left: 3px;
+}

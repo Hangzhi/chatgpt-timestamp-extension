@@ -1,4 +1,5 @@
 let use24HourFormat = localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false';
+let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') === 'true';
 
 function addTimestamps() {
   document.querySelectorAll('div[data-message-id]').forEach(div => {
@@ -10,8 +11,10 @@ function addTimestamps() {
 
     const fiber = div[reactKey];
     const messages = fiber?.return?.memoizedProps?.messages;
-    const timestamp = messages?.[0]?.create_time;
+    const message = messages?.[0];
+    const timestamp = message?.create_time;
     if (!timestamp) return;
+    if (useUserOnlyTimestamps && message?.author?.role !== 'user') return;
 
     const date = new Date(timestamp * 1000);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -62,6 +65,11 @@ function updateTimestamps() {
 window.addEventListener('storage', (e) => {
   if (e.key === 'chatgpt-timestamps-24h-format') {
     use24HourFormat = e.newValue !== 'false';
+    updateTimestamps();
+    return;
+  }
+  if (e.key === 'chatgpt-timestamps-user-only') {
+    useUserOnlyTimestamps = e.newValue === 'true';
     updateTimestamps();
   }
 });
