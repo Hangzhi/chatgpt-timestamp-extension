@@ -29,8 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (tab.url?.includes('chat.openai.com') || tab.url?.includes('chatgpt.com')) {
-      const is24HourToggle = e.target.id === 'toggleTimestamp';
-      const key = is24HourToggle ? 'chatgpt-timestamps-24h-format' : 'chatgpt-timestamps-user-only';
+      const key = e.target.id === 'toggleTimestamp' ? 'chatgpt-timestamps-24h-format' : 'chatgpt-timestamps-user-only';
       const value = e.target.checked;
 
       chrome.scripting.executeScript({
