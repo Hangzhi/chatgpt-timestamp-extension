@@ -9,9 +9,17 @@ function addTimestamps() {
     const reactKey = Object.keys(div).find(k => k.startsWith('__reactFiber$'));
     if (!reactKey) return;
 
-    const fiber = div[reactKey];
-    const messages = fiber?.return?.memoizedProps?.messages;
-    const message = messages?.[0];
+    // Walk up the fiber tree to find the component with messages
+    let node = div[reactKey];
+    let message;
+    for (let i = 0; i < 15 && node; i++) {
+      const messages = node.memoizedProps?.messages;
+      if (messages?.[0]?.create_time) {
+        message = messages[0];
+        break;
+      }
+      node = node.return;
+    }
     const timestamp = message?.create_time;
     if (!timestamp) return;
     if (useUserOnlyTimestamps && message?.author?.role !== 'user') return;
