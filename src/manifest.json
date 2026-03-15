@@ -1,7 +1,13 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Timestamp",
-  "version": "0.2.3",
+  "version": "0.2.4",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "chatgpt-timestamp@hangzhi",
+      "strict_min_version": "109.0"
+    }
+  },
   "description": "Displays timestamps for ChatGPT messages",
   "icons": {
     "16": "icon.png",
