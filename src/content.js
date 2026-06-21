@@ -43,13 +43,18 @@ function addTimestamps() {
     const color = isDark ? '#ccc' : '#555';
     span.textContent = formatted;
     span.className = 'chatgpt-timestamp';
+    // Force the timestamp itself to render left-to-right, and isolate it from
+    // the parent's `dir="auto"` direction detection so it doesn't flip RTL
+    // (Hebrew/Arabic) messages to LTR. See issue #19.
+    span.dir = 'ltr';
     span.style.cssText = `
       font-size: 11px;
       color: ${color};
       font-weight: 600;
-      margin-right: 8px;
+      margin-inline-end: 8px;
       margin-bottom: 4px;
       display: inline-block;
+      unicode-bidi: isolate;
       font-family: ui-monospace, 'SF Mono', Monaco, monospace;
     `;
     div.insertBefore(span, div.firstChild);
