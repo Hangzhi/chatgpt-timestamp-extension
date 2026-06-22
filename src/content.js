@@ -1,3 +1,12 @@
+// Wrapped in an IIFE so the declarations below are function-scoped. If the
+// script is injected more than once into the same page (duplicate install or
+// SPA re-injection), top-level `let`s would otherwise collide in the shared
+// MAIN world and throw "Identifier ... has already been declared".
+(function () {
+const initializationKey = Symbol.for('chatgpt-timestamp-extension.initialized');
+if (window[initializationKey]) return;
+window[initializationKey] = true;
+
 let use24HourFormat = localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false';
 let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') === 'true';
 
@@ -43,13 +52,18 @@ function addTimestamps() {
     const color = isDark ? '#ccc' : '#555';
     span.textContent = formatted;
     span.className = 'chatgpt-timestamp';
+    // Force the timestamp itself to render left-to-right, and isolate it from
+    // the parent's `dir="auto"` direction detection so it doesn't flip RTL
+    // (Hebrew/Arabic) messages to LTR. See issue #19.
+    span.dir = 'ltr';
     span.style.cssText = `
       font-size: 11px;
       color: ${color};
       font-weight: 600;
-      margin-right: 8px;
+      margin-inline-end: 8px;
       margin-bottom: 4px;
       display: inline-block;
+      unicode-bidi: isolate;
       font-family: ui-monospace, 'SF Mono', Monaco, monospace;
     `;
     div.insertBefore(span, div.firstChild);
@@ -98,3 +112,4 @@ observer.observe(document.body, {
 
 // Also run periodically to catch any missed messages
 setInterval(addTimestamps, 5000);
+})();
