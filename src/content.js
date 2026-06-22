@@ -8,78 +8,95 @@ if (window[initializationKey]) return;
 window[initializationKey] = true;
 
 let use24HourFormat = localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false';
-let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') === 'true';
+let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') !== 'false';
+
+function getMessageFromReactFiber(element) {
+  const reactKey = Object.keys(element).find(key => key.startsWith('__reactFiber$'));
+  if (!reactKey) return;
+
+  let node = element[reactKey];
+  for (let i = 0; i < 15 && node; i++) {
+    const messages = node.memoizedProps?.messages;
+    if (messages?.[0]?.create_time) return messages[0];
+    node = node.return;
+  }
+}
+
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp * 1000);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const format = number => number.toString().padStart(2, '0');
+
+  if (use24HourFormat) {
+    return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} - ${format(date.getHours())}:${format(date.getMinutes())}:${format(date.getSeconds())}`;
+  }
+
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} - ${hours}:${format(date.getMinutes())}:${format(date.getSeconds())} ${ampm}`;
+}
+
+function createTimestampSpan(timestamp) {
+  const span = document.createElement('span');
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const color = isDark ? '#ccc' : '#555';
+
+  span.textContent = formatTimestamp(timestamp);
+  span.className = 'chatgpt-timestamp';
+  span.dir = 'ltr';
+  span.style.cssText = `
+    font-size: 11px;
+    color: ${color};
+    font-weight: 600;
+    margin-inline-end: 8px;
+    margin-bottom: 4px;
+    display: inline-block;
+    unicode-bidi: isolate;
+    font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+  `;
+  return span;
+}
+
+function addTimestamp(container, messageDiv) {
+  if (container.dataset.timestampAdded) return;
+
+  const message = getMessageFromReactFiber(messageDiv);
+  if (!message?.create_time) return;
+  if (useUserOnlyTimestamps && message.author?.role !== 'user') return;
+
+  messageDiv.insertBefore(createTimestampSpan(message.create_time), messageDiv.firstChild);
+  container.dataset.timestampAdded = 'true';
+}
 
 function addTimestamps() {
+  const turnContainers = document.querySelectorAll('section[data-turn-id]');
+
+  if (turnContainers.length > 0) {
+    turnContainers.forEach(section => {
+      if (section.dataset.timestampAdded) return;
+
+      const messageDiv = section.querySelector('div[data-message-id]');
+      if (!messageDiv) return;
+
+      addTimestamp(section, messageDiv);
+    });
+    return;
+  }
+
   document.querySelectorAll('div[data-message-id]').forEach(div => {
-    // Skip if already has timestamp
-    if (div.dataset.timestampAdded) return;
-
-    const reactKey = Object.keys(div).find(k => k.startsWith('__reactFiber$'));
-    if (!reactKey) return;
-
-    // Walk up the fiber tree to find the component with messages
-    let node = div[reactKey];
-    let message;
-    for (let i = 0; i < 15 && node; i++) {
-      const messages = node.memoizedProps?.messages;
-      if (messages?.[0]?.create_time) {
-        message = messages[0];
-        break;
-      }
-      node = node.return;
-    }
-    const timestamp = message?.create_time;
-    if (!timestamp) return;
-    if (useUserOnlyTimestamps && message?.author?.role !== 'user') return;
-
-    const date = new Date(timestamp * 1000);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const format = n => n.toString().padStart(2, '0');
-
-    let formatted;
-    if (use24HourFormat) {
-      formatted = `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} - ${format(date.getHours())}:${format(date.getMinutes())}:${format(date.getSeconds())}`;
-    } else {
-      let hours = date.getHours();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      formatted = `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} - ${hours}:${format(date.getMinutes())}:${format(date.getSeconds())} ${ampm}`;
-    }
-
-    const span = document.createElement('span');
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const color = isDark ? '#ccc' : '#555';
-    span.textContent = formatted;
-    span.className = 'chatgpt-timestamp';
-    // Force the timestamp itself to render left-to-right, and isolate it from
-    // the parent's `dir="auto"` direction detection so it doesn't flip RTL
-    // (Hebrew/Arabic) messages to LTR. See issue #19.
-    span.dir = 'ltr';
-    span.style.cssText = `
-      font-size: 11px;
-      color: ${color};
-      font-weight: 600;
-      margin-inline-end: 8px;
-      margin-bottom: 4px;
-      display: inline-block;
-      unicode-bidi: isolate;
-      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
-    `;
-    div.insertBefore(span, div.firstChild);
-
-    // Mark as processed
-    div.dataset.timestampAdded = 'true';
+    addTimestamp(div, div);
   });
 }
 
 function updateTimestamps() {
-  // Remove all existing timestamps
   document.querySelectorAll('.chatgpt-timestamp').forEach(span => span.remove());
+  document.querySelectorAll('section[data-turn-id]').forEach(section => {
+    delete section.dataset.timestampAdded;
+  });
   document.querySelectorAll('div[data-message-id]').forEach(div => {
     delete div.dataset.timestampAdded;
   });
-  // Re-add with new format
   addTimestamps();
 }
 
