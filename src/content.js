@@ -3,6 +3,10 @@
 // SPA re-injection), top-level `let`s would otherwise collide in the shared
 // MAIN world and throw "Identifier ... has already been declared".
 (function () {
+const initializationKey = Symbol.for('chatgpt-timestamp-extension.initialized');
+if (window[initializationKey]) return;
+window[initializationKey] = true;
+
 let use24HourFormat = localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false';
 let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') === 'true';
 
