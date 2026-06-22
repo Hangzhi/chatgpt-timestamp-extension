@@ -1,3 +1,8 @@
+// Wrapped in an IIFE so the declarations below are function-scoped. If the
+// script is injected more than once into the same page (duplicate install or
+// SPA re-injection), top-level `let`s would otherwise collide in the shared
+// MAIN world and throw "Identifier ... has already been declared".
+(function () {
 let use24HourFormat = localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false';
 let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') === 'true';
 
@@ -103,3 +108,4 @@ observer.observe(document.body, {
 
 // Also run periodically to catch any missed messages
 setInterval(addTimestamps, 5000);
+})();
