@@ -1,5 +1,5 @@
 let use24HourFormat = localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false';
-let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') === 'true';
+let useUserOnlyTimestamps = localStorage.getItem('chatgpt-timestamps-user-only') !== 'false';
 
 function addTimestamps() {
   document.querySelectorAll('div[data-message-id]').forEach(div => {

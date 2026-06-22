@@ -11,15 +11,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       target: { tabId: tab.id },
       func: () => ({
         use24HourFormat: localStorage.getItem('chatgpt-timestamps-24h-format') !== 'false',
-        useUserOnlyTimestamps: localStorage.getItem('chatgpt-timestamps-user-only') === 'true'
+        useUserOnlyTimestamps: localStorage.getItem('chatgpt-timestamps-user-only') !== 'false'
       })
     });
     toggle.checked = result[0]?.result?.use24HourFormat ?? true;
-    userOnlyToggle.checked = result[0]?.result?.useUserOnlyTimestamps ?? false;
+    userOnlyToggle.checked = result[0]?.result?.useUserOnlyTimestamps ?? true;
   } else {
     // Default to true (24-hour format) if not on ChatGPT
     toggle.checked = true;
-    userOnlyToggle.checked = false;
+    userOnlyToggle.checked = true;
   }
 
   // Handle all toggle events
