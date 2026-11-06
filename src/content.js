@@ -154,11 +154,15 @@ function getTurnEntry(committedFiber, conversationId) {
     const entry = ownValue(props, 'entry');
     const turn = ownValue(entry, 'turn');
     const items = ownValue(turn, 'items');
-    if (Array.isArray(items) && ownValue(entry, 'conversationId') === conversationId) {
+    const entryConversationId = ownValue(entry, 'conversationId');
+    const isLocalConversation = typeof entryConversationId === 'string' &&
+      entryConversationId.startsWith('local-chatgpt:') &&
+      entryConversationId.length > 'local-chatgpt:'.length;
+    if (Array.isArray(items) && (entryConversationId === conversationId || isLocalConversation)) {
       const entryId = ownValue(entry, 'id');
       if (typeof entryId !== 'string' || !entryId) return null;
 
-      return { entry, turn, items };
+      return { entry, turn, items, isLocalConversation };
     }
     fiber = fiber.return;
   }
@@ -353,9 +357,16 @@ function inspectNewShellTurn(turn, conversationId) {
   result.userTimestamp = resolveTurnTimestamp(
     getSemanticUnit(turn, 'user'), turnInfo, liveMapping.mapping, 'user'
   );
+  // A local conversation ID is only accepted when the user message can be
+  // identified unambiguously in the matching committed conversation snapshot.
+  if (turnInfo.isLocalConversation && result.userTimestamp == null) return result;
   result.assistantTimestamp = resolveTurnTimestamp(
     getSemanticUnit(turn, 'assistant'), turnInfo, liveMapping.mapping, 'assistant'
   );
+  if (getCurrentConversationId() !== conversationId) {
+    result.userTimestamp = null;
+    result.assistantTimestamp = null;
+  }
   return result;
 }
 
